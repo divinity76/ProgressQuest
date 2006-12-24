@@ -1,0 +1,5 @@
+order deny,allow
+deny from all 
+allow from .telocity.com
+allow from .google.com
+allow from .mclass.broadwing.net

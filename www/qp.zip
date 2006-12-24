@@ -1,0 +1,13 @@
+<?
+	$pq = "pq.zip/pq.zip";
+	header('Cache-Control: no-cache, must-revalidate');
+	header('Pragma: no-cache');
+	header('Content-Length: ' . filesize($pq));
+	header('Content-Type: application/zip');
+	include('log.php');
+	$fp = fopen($pq, "rb");
+	while(!feof($fp)) {
+	  $buffer = fread($fp, 4096);
+	  print $buffer;
+	}
+?>
