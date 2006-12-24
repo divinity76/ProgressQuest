@@ -1,6 +1,9 @@
 unit Main;
 { copyright (c)2002 Eric Fredricksen all rights reserved }
 
+{$UNDEF CHEATS}
+{$UNDEF LOGGING}
+
 interface
 
 uses
@@ -8,6 +11,11 @@ uses
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, ImgList, Menus, ShellAPI;
 
 const
+  // revs:
+  // 4: pq 6.2
+  // 3: pq 6.1
+  // 2: pq 6.0
+  // 1: pq 6.0, some early release I guess; don't remember
   RevString = '&rev=4';
   wmIconTray = WM_USER + Ord('t');
   kFileExt = '.pq';
@@ -91,8 +99,11 @@ type
     procedure OnEndSession(var Msg : TMessage); message WM_ENDSESSION;
     procedure RestoreIt;
     function AuthenticateUrl(url: String): String;
+    {$IFDEF LOGGING}
     procedure Log(line: String);
+    {$ENDIF}
     procedure ExportCharSheet;
+    function CharSheet: String;
   public
     FTrayIcon: TNotifyIconData;
     FReportSave: Boolean;
@@ -144,7 +155,6 @@ uses Web, StrUtils, NewGuy, Math, Config, Front, zlibex, SelServ, Login,
   mmsystem, Registry, ShlObj;
 
 {$R *.dfm}
-{$DEFINE CHEATS}
 
 // Returns '' if not there, which is lame, but okay for my purposes
 function RegRead(root: HKEY; path, name: String): String;
@@ -207,8 +217,7 @@ begin
     uFlags := NIF_MESSAGE + NIF_ICON + NIF_TIP;
     uCallbackMessage := wmIconTray;
     hIcon := Application.Icon.Handle;
-    StrPCopy(szTip, Caption);
-    //a.szTip := 'Progress Quest';
+    StrPLCopy(szTip, Caption, 63);
   end;
   Application.Minimize;
   ShowWindow(Application.Handle, SW_HIDE);
@@ -230,10 +239,12 @@ begin
 end;
 
 procedure TMainForm.OnTrayMessage(var Msg: TMessage);
-//var  p : TPoint;
 begin
   case Msg.lParam of
     WM_LBUTTONDOWN, WM_RBUTTONDOWN:
+      RestoreIt;
+
+    WM_LBUTTONDBLCLK, WM_RBUTTONDBLCLK:
       RestoreIt;
   end;
 end;
@@ -245,8 +256,8 @@ begin
     //Shell_NotifyIcon(NIM_ADD, @MainForm.FTrayIcon);
   end;
   MainForm.Timer1.Enabled := True;
-  // BS location for this but
-  MainForm.Caption := 'ProgressQuest - ' + ChangeFileExt(MainForm.GameSaveName, '');
+  // BS location for this, but...
+  MainForm.Caption := 'ProgressQuest - ' + ChangeFileExt(ExtractFileName(MainForm.GameSaveName), '');
 end;
 
 function TMainForm.GetPasskey: Integer; begin Result := Traits.Tag; end;
@@ -379,7 +390,7 @@ function Young(m: Integer; s: String): String;
 begin
   Result := IntToStr(m) + s; // in case I screw up
   case -m of
-  -5,5: Result := 'fetal ' + s;
+  -5,5: Result := 'foetal ' + s;
   -4,4: Result := 'baby ' + s;
   -3,3: Result := 'preadolescent ' + s;
   -2,2: Result := 'teenage ' + s;
@@ -767,7 +778,9 @@ begin
   end;
   with Quests do begin
     if Items.Count > 0 then begin
+      {$IFDEF LOGGING}
       Log('Quest completed: ' + Items[Items.Count-1].Caption);
+      {$ENDIF}
       Items[Items.Count-1].StateIndex := 1;
       case Random(4) of
         0: WinSpell;
@@ -824,7 +837,9 @@ begin
           fQuest.Caption := '';
         end;
       end;
+      {$IFDEF LOGGING}
       Log('Commencing quest: ' + Caption);
+      {$ENDIF}
       StateIndex := 0;
       MakeVisible(false);
     end;
@@ -904,11 +919,12 @@ begin
   Brag('a');
 end;
 
+{$IFDEF LOGGING}
 procedure TMainForm.Log(line: String);
 var
   stamp: String;
   logname: String;
-  log: TextFile;
+  log: Text;
 begin
   if FLogEvents then begin
     logname := ChangeFileExt(GameSaveName, '.log');
@@ -920,63 +936,77 @@ begin
     CloseFile(log);
   end;
 end;
+{$ENDIF}
 
 procedure TMainForm.ExportCharSheet;
 var
   f: TextFile;
-  i: Integer;
 begin
   AssignFile(f, ChangeFileExt(GameSaveName, '.sheet'));
   Rewrite(f);
-  Write(f,Get(Traits,'Name'));
+  Write(f, CharSheet);
+  Flush(f);
+  CloseFile(f);
+end;
+
+function TMainForm.CharSheet: String;
+var
+  i: Integer;
+  f: String;
+  procedure Wr(a: String); begin f := f + a; end;
+  procedure WrLn(a: String); overload; begin Wr(a + #13#10); end;
+  procedure WrLn; overload; begin Wr(#13#10); end;
+begin
+  Wr(Get(Traits,'Name'));
   if GetHostName <> '' then
-    Write(f,' [' + GetHostName + ']');
-  WriteLn(f);
-  WriteLn(f,Get(Traits,'Race') + ' ' +  Get(Traits,'Class'));
-  WriteLn(f,Format('Level %d (exp. %d/%d)', [GetI(Traits,'Level'), ExpBar.Position, ExpBar.Max]));
-  //WriteLn(f,'Level ' + Get(Traits,'Level') + ' (' + ExpBar.Hint + ')');
-  WriteLn(f);
+    Wr(' [' + GetHostName + ']');
+  WrLn;
+  WrLn(Get(Traits,'Race') + ' ' +  Get(Traits,'Class'));
+  WrLn(Format('Level %d (exp. %d/%d)', [GetI(Traits,'Level'), ExpBar.Position, ExpBar.Max]));
+  //WrLn('Level ' + Get(Traits,'Level') + ' (' + ExpBar.Hint + ')');
+  WrLn;
   with Plots do if Items.Count > 0 then
-    WriteLn(f,'Plot stage: ' + Items[Items.Count-1].Caption + ' (' + PlotBar.Hint + ')');
+    WrLn('Plot stage: ' + Items[Items.Count-1].Caption + ' (' + PlotBar.Hint + ')');
   with Quests do if Items.Count > 0 then
-    WriteLn(f,'Quest: ' + Items[Items.Count-1].Caption + ' (' + QuestBar.Hint + ')');
-  WriteLn(f);
-  WriteLn(f, 'Stats:');
-  WriteLn(f, Format('  STR%7d', [GetI(Stats,'STR')]));
-  WriteLn(f, Format('  CON%7d', [GetI(Stats,'CON')]));
-  WriteLn(f, Format('  DEX%7d', [GetI(Stats,'DEX')]));
-  WriteLn(f, Format('  INT%7d', [GetI(Stats,'INT')]));
-  WriteLn(f, Format('  WIS%7d      HP Max%7d', [GetI(Stats,'WIS'), GetI(Stats,'HP Max')]));
-  WriteLn(f, Format('  CHA%7d      MP Max%7d', [GetI(Stats,'CHA'), GetI(Stats,'MP Max')]));
-  WriteLn(f);
-  WriteLn(f, 'Equipment:');
+    WrLn('Quest: ' + Items[Items.Count-1].Caption + ' (' + QuestBar.Hint + ')');
+  WrLn;
+  WrLn( 'Stats:');
+  WrLn( Format('  STR%7d', [GetI(Stats,'STR')]));
+  WrLn( Format('  CON%7d', [GetI(Stats,'CON')]));
+  WrLn( Format('  DEX%7d', [GetI(Stats,'DEX')]));
+  WrLn( Format('  INT%7d', [GetI(Stats,'INT')]));
+  WrLn( Format('  WIS%7d      HP Max%7d', [GetI(Stats,'WIS'), GetI(Stats,'HP Max')]));
+  WrLn( Format('  CHA%7d      MP Max%7d', [GetI(Stats,'CHA'), GetI(Stats,'MP Max')]));
+  WrLn;
+  WrLn( 'Equipment:');
   for i := 1 to Equips.Items.Count-1 do
     if Get(Equips,i) <> '' then
-      WriteLn(f, '  ' + LeftStr(Equips.Items[i].Caption + '            ', 12) + Get(Equips,i));
-  WriteLn(f);
-  WriteLn(f, 'Spell Book:');
+      WrLn( '  ' + LeftStr(Equips.Items[i].Caption + '            ', 12) + Get(Equips,i));
+  WrLn;
+  WrLn( 'Spell Book:');
   with Spells do
     for i := 1 to Items.Count-1 do
-      WriteLn(f, '  ' + Items[i].Caption + ' ' + Get(Spells,i));
-  WriteLn(f);
-  WriteLn(f, 'Inventory (' + EncumBar.Hint + '):');
-  WriteLn(f, '  ' + Indefinite('gold piece', GetI(Inventory, 'Gold')));
+      WrLn( '  ' + Items[i].Caption + ' ' + Get(Spells,i));
+  WrLn;
+  WrLn( 'Inventory (' + EncumBar.Hint + '):');
+  WrLn( '  ' + Indefinite('gold piece', GetI(Inventory, 'Gold')));
   with Inventory do
     for i := 2 to Items.Count-1 do
       if Pos(' of ', Items[i].Caption) > 0
-      then WriteLn(f, '  ' + Definite(Items[i].Caption, GetI(Inventory,i)))
-      else WriteLn(f, '  ' + Indefinite(Items[i].Caption, GetI(Inventory,i)));
-  WriteLn(f);
-  WriteLn(f, '-- ' + DateTimeToStr(Now));
-  WriteLn(f, '-- Progress Quest 6.2 - http://progressquest.com/');
-  Flush(f);
-  CloseFile(f);
+      then WrLn( '  ' + Definite(Items[i].Caption, GetI(Inventory,i)))
+      else WrLn( '  ' + Indefinite(Items[i].Caption, GetI(Inventory,i)));
+  WrLn;
+  WrLn( '-- ' + DateTimeToStr(Now));
+  WrLn( '-- Progress Quest 6.2 - http://progressquest.com/');
+  Result := f;
 end;
 
 procedure TMainForm.Task(caption: String; msec: Integer);
 begin
   Kill.SimpleText := caption + '...';
+  {$IFDEF LOGGING}
   Log(Kill.SimpleText);
+  {$ENDIF}
   with TaskBar do begin
     Position := 0;
     Max := msec;
@@ -996,7 +1026,9 @@ begin
   end;
   if value < 0 then value := -value;
   line := line + ' ' + Indefinite(key, value);
+  {$IFDEF LOGGING}
   Log(line);
+  {$ENDIF}
 end;
 
 procedure TMainForm.AddR(list: TListView; key: String; value: Integer);
@@ -1137,7 +1169,7 @@ begin
 
   FReportSave := true;
   FLogEvents := false;
-  FMakeBackups := false;
+  FMakeBackups := true;
   FMinToTray := true;
   FExportSheets := false;
 
@@ -1197,6 +1229,21 @@ begin
   end;
 end;
 
+const
+  KUsage =
+    'Usage: pq [flags] [game.pq]'#10 +
+    #10 +
+    'Flags:'#10 +
+    '  -no-backup     Do not make a backup file when saving the game'#10 +
+    {$IFDEF LOGGING}
+    '  -log           Create a text log of events as they occur in the game'#10 +
+    {$ENDIF}
+    '  -no-report-save   Do not display the "Game saved" message when saving'#10 +
+    '  -no-tray       Do not minimize to the system tray'#10 +
+    '  -export        Export a text character sheet periodically'#10 +
+    '  -export-only   Export a text character sheet now, then exit'#10 +
+    '  -no-proxy      Do not use Internet Explorer proxy settings'#10 +
+    '  -help          Display this chatter (and exit)'#10 ;
 
 procedure TMainForm.FormShow(Sender: TObject);
 var
@@ -1207,10 +1254,12 @@ begin
   done := false;
   exportandexit := false;
   for i := 1 to ParamCount do begin
-    if ParamStr(i) = '-log'
-    then FLogEvents := true
-    else if ParamStr(i) = '-backup'
+    if ParamStr(i) = '-backup'
     then FMakeBackups := true
+    {$IFDEF LOGGING}
+    else if ParamStr(i) = '-log'
+    then FLogEvents := true
+    {$ENDIF}
     else if ParamStr(i) = '-no-report-save'
     then FReportSave := false
     else if ParamStr(i) = '-no-tray'
@@ -1219,7 +1268,14 @@ begin
     then FExportSheets := true
     else if ParamStr(i) = '-export-only'
     then exportandexit := true
-    else begin
+    else if ParamStr(i) = '-no-proxy'
+    then ProxyOK := false
+    else if ParamStr(i) = '-help'
+    then begin
+      ShowMessage(KUsage);
+      Close;
+      Exit;
+    end else begin
       LoadGame(ParamStr(i));
       if exportandexit then begin
         ExportCharSheet;
@@ -1296,7 +1352,9 @@ var
   m: TMemoryStream;
   i: Integer;
 begin
+  {$IFDEF LOGGING}
   Log('Saving game: ' + GameSaveName);
+  {$ENDIF}
   Result := true;
   try
     if FMakeBackups then begin
@@ -1353,7 +1411,9 @@ begin
   for i := 0 to ComponentCount-1 do
     m.ReadComponent(Components[i]);
   m.Free;
+  {$IFDEF LOGGING}
   Log('Loaded game: ' + name);
+  {$ENDIF}
   StartTimer;
   TriggerAutosizes;
 end;
@@ -1402,6 +1462,9 @@ begin
     Cheats.Visible := not Cheats.Visible;
     {$ENDIF}
   end;
+  if (ssCtrl in Shift) and (Key = ord('A')) then begin
+    ShowMessage(CharSheet);
+  end;
   if GetPasskey = 0 then Exit; // no need for these things
   if (ssCtrl in Shift) and (Key = ord('B')) then begin
     Brag('b');
@@ -1420,8 +1483,7 @@ end;
 
 procedure Navigate(url: String);
 begin
-  ShellExecute(GetDesktopWindow(), 'open', PChar(url),
-               nil, '', SW_SHOW);
+  ShellExecute(GetDesktopWindow(), 'open', PChar(url), nil, '', SW_SHOW);
 end;
 
 function LFSR(pt: String; salt: Integer): Integer;

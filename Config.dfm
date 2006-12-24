@@ -342,7 +342,8 @@ object K: TK
       'Galoon'
       'Bijou'
       'Spangle'
-      'Gimcrack')
+      'Gimcrack'
+      'Hood')
     TabOrder = 6
     WordWrap = False
   end
@@ -493,7 +494,8 @@ object K: TK
       'tuppence'
       'casket'
       'nosegay'
-      'trinket')
+      'trinket'
+      'credenza')
     TabOrder = 9
     WordWrap = False
   end
@@ -729,7 +731,10 @@ object K: TK
       'Koala|2|heart'
       'Wolf|2|paw'
       'Whippet|2|collar'
-      'Uruk|2|boot')
+      'Uruk|2|boot'
+      'Poroid|4|node'
+      'Moakum|8|frenum'
+      'Fly|0|*')
     TabOrder = 10
     WordWrap = False
   end

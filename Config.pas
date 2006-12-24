@@ -37,10 +37,6 @@ type
     Label13: TLabel;
     DefenseBad: TMemo;
     Label14: TLabel;
-  private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 var

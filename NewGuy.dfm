@@ -85,6 +85,7 @@ object NewGuyForm: TNewGuyForm
     C07FFC07E03FF80FF01FF01FF80FE03FFC07E07FFE07E0FFFF07E1FFFF87}
   OldCreateOrder = False
   Position = poScreenCenter
+  OnActivate = FormActivate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -298,7 +299,7 @@ object NewGuyForm: TNewGuyForm
   object Name: TLabeledEdit
     Left = 8
     Top = 20
-    Width = 185
+    Width = 165
     Height = 21
     EditLabel.Width = 28
     EditLabel.Height = 13
@@ -307,7 +308,6 @@ object NewGuyForm: TNewGuyForm
     LabelSpacing = 3
     MaxLength = 30
     TabOrder = 4
-    Text = 'Grumdrig'
   end
   object OldRolls: TListBox
     Left = 396
@@ -353,6 +353,15 @@ object NewGuyForm: TNewGuyForm
     PasswordChar = '*'
     TabOrder = 8
     Visible = False
+  end
+  object Gen: TButton
+    Left = 176
+    Top = 20
+    Width = 17
+    Height = 22
+    Caption = '?'
+    TabOrder = 9
+    OnClick = GenClick
   end
   object PoorCodeDesign: TNMURL
     Left = 336

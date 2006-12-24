@@ -36,11 +36,14 @@ type
     Account: TLabeledEdit;
     Password: TLabeledEdit;
     ApplicationEvents1: TApplicationEvents;
+    Gen: TButton;
     procedure RerollClick(Sender: TObject);
     procedure UnrollClick(Sender: TObject);
     procedure SoldClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
+    procedure GenClick(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
   private
     procedure RollEm;
     function GetAccount: String;
@@ -130,7 +133,6 @@ begin
       ItemIndex := Random(Items.Count);
     with Klass do
       ItemIndex := Random(Items.Count);
-    Name.SetFocus;
   end;
 end;
 
@@ -178,6 +180,7 @@ begin
         if (MainForm.Label8.Tag and 16) = 0
         then url := MainForm.GetHostAddr
         else url := 'http://www.progressquest.com/create.php?';
+        // url := StringReplace(url, '.com/', '.com/dev/', []);
         if (GetAccount <> '') or (GetPassword <> '') then
           url := StuffString(url, 8, 0, GetAccount+':'+GetPassword+'@');
         args := 'cmd=create' +
@@ -204,10 +207,47 @@ begin
   Server.SendHeader.Values['Guild'] := MainForm.GetGuild;
 end;
  }
- 
+
 procedure TNewGuyForm.ApplicationEvents1Minimize(Sender: TObject);
 begin
   MainForm.MinimizeIt;
+end;
+
+function GenerateName: string;
+const
+  KParts: array [0..2] of string = (
+    'br|cr|dr|fr|gr|j|kr|l|m|n|pr||||r|sh|tr|v|wh|x|y|z',
+    'a|a|e|e|i|i|o|o|u|u|ae|ie|oo|ou',
+    'b|ck|d|g|k|m|n|p|t|v|x|z');
+var
+  i: Integer;
+
+  function Pick(s: string): string;
+  var
+    count, i: Integer;
+  begin
+    count := 1;
+    for i := 0 to Length(s)-1 do
+      if s[i] = '|' then Inc(count);
+    Result := Split(s, Random(count));
+  end;
+begin
+  for i := 0 to 5 do
+    Result := Result + Pick(KParts[i mod 3]);
+  Result := UpperCase(Copy(Result,1,1)) + Copy(Result,2,Length(Result));
+end;
+
+procedure TNewGuyForm.GenClick(Sender: TObject);
+begin
+  Name.Text := GenerateName;
+end;
+
+procedure TNewGuyForm.FormActivate(Sender: TObject);
+begin
+  if Name.Text = '' then begin
+    GenClick(Sender);
+    Name.SetFocus;
+  end;
 end;
 
 end.

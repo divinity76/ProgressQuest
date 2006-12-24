@@ -51,7 +51,7 @@ Conditionals=
 DebugSourceDirs=
 UsePackages=0
 [Parameters]
-RunParams=-export "Cokie [oobag].pq"
+RunParams=
 HostApplication=
 Launcher=
 UseLauncher=0
