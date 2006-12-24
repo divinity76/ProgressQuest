@@ -37,6 +37,14 @@ type
     Label13: TLabel;
     DefenseBad: TMemo;
     Label14: TLabel;
+    Races: TMemo;
+    Label15: TLabel;
+    Label16: TLabel;
+    Klasses: TMemo;
+    Label17: TLabel;
+    Titles: TMemo;
+    ImpressiveTitles: TMemo;
+    Label18: TLabel;
   end;
 
 var

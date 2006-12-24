@@ -1,8 +1,8 @@
 object MainForm: TMainForm
-  Left = 281
-  Top = 121
+  Left = 265
+  Top = 0
   Width = 682
-  Height = 569
+  Height = 568
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   Caption = 'Progress Quest'
@@ -96,7 +96,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 0
     Width = 200
-    Height = 507
+    Height = 501
     Align = alLeft
     TabOrder = 0
     object Label1: TLabel
@@ -214,7 +214,7 @@ object MainForm: TMainForm
       Left = 1
       Top = 271
       Width = 198
-      Height = 203
+      Height = 197
       Align = alClient
       Columns = <
         item
@@ -236,7 +236,7 @@ object MainForm: TMainForm
     end
     object Cheats: TPanel
       Left = 1
-      Top = 474
+      Top = 468
       Width = 198
       Height = 32
       Align = alBottom
@@ -293,7 +293,7 @@ object MainForm: TMainForm
     Left = 474
     Top = 0
     Width = 200
-    Height = 507
+    Height = 501
     Align = alRight
     TabOrder = 1
     object Label3: TLabel
@@ -326,7 +326,7 @@ object MainForm: TMainForm
     end
     object QuestBar: TProgressBar
       Left = 1
-      Top = 490
+      Top = 484
       Width = 198
       Height = 16
       Align = alBottom
@@ -377,7 +377,7 @@ object MainForm: TMainForm
       Left = 1
       Top = 190
       Width = 198
-      Height = 300
+      Height = 294
       Align = alClient
       Columns = <
         item
@@ -401,7 +401,7 @@ object MainForm: TMainForm
     Left = 200
     Top = 0
     Width = 274
-    Height = 507
+    Height = 501
     Align = alClient
     TabOrder = 2
     object InventoryLabelAlsoGameStyle: TLabel
@@ -420,7 +420,7 @@ object MainForm: TMainForm
     end
     object Label7: TLabel
       Left = 1
-      Top = 477
+      Top = 471
       Width = 272
       Height = 13
       Align = alBottom
@@ -450,7 +450,7 @@ object MainForm: TMainForm
       Left = 1
       Top = 189
       Width = 272
-      Height = 288
+      Height = 282
       Align = alClient
       Columns = <
         item
@@ -473,7 +473,7 @@ object MainForm: TMainForm
     end
     object EncumBar: TProgressBar
       Left = 1
-      Top = 490
+      Top = 484
       Width = 272
       Height = 16
       Align = alBottom
@@ -562,7 +562,7 @@ object MainForm: TMainForm
   end
   object Panel4: TPanel
     Left = 0
-    Top = 507
+    Top = 501
     Width = 674
     Height = 35
     Align = alBottom

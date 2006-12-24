@@ -1,7 +1,7 @@
 unit Main;
 { copyright (c)2002 Eric Fredricksen all rights reserved }
 
-{$UNDEF CHEATS}
+{$DEFINE CHEATS}
 {$UNDEF LOGGING}
 
 interface
@@ -12,13 +12,14 @@ uses
 
 const
   // revs:
+  // 5: pq 6.3
   // 4: pq 6.2
   // 3: pq 6.1
   // 2: pq 6.0
   // 1: pq 6.0, some early release I guess; don't remember
-  RevString = '&rev=4';
+  RevString = '&rev=5';
   wmIconTray = WM_USER + Ord('t');
-  kFileExt = '.pq';
+  kFileExt = '.pq3';
 
 type
   TMainForm = class(TForm)
@@ -104,6 +105,9 @@ type
     {$ENDIF}
     procedure ExportCharSheet;
     function CharSheet: String;
+    procedure InterplotCinematic;
+    function NamedMonster(level: Integer): String;
+    function ImpressiveGuy: String;
   public
     FTrayIcon: TNotifyIconData;
     FReportSave: Boolean;
@@ -145,7 +149,8 @@ type
 var
   MainForm: TMainForm;
 
-function Split(s: String; field: Integer): String;
+function Split(s: String; field: Integer): String; overload;
+function Split(s: String; field: Integer; separator: String): String; overload;
 
 procedure Navigate(url: String);
 
@@ -321,7 +326,12 @@ function RandomLow(below: Integer): Integer;
 begin
   Result := Min(Random(below),Random(below));
 end;
-            
+
+function PickLow(s: TStrings): String;
+begin
+  Result := s[RandomLow(s.Count)];
+end;
+
 function Ends(s,e: String): Boolean;
 begin
   Result := Copy(s,1+Length(s)-Length(e),Length(e)) = e;
@@ -342,18 +352,23 @@ begin
        else Result := s + 's';
 end;
 
-function Split(s: String; field: Integer): String;
+function Split(s: String; field: Integer; separator: String): String;
 var
   p: Integer;
 begin
   while field > 0 do begin
-    p := Pos('|',s);
+    p := Pos(separator,s);
     s := Copy(s,p+1,10000);
     Dec(field);
   end;
-  if Pos('|',s) > 0
-  then Result := Copy(s,1,Pos('|',s)-1)
+  if Pos(separator,s) > 0
+  then Result := Copy(s,1,Pos(separator,s)-1)
   else Result := s;
+end;
+
+function Split(s: String; field: Integer): String;
+begin
+  result := Split(s, field, '|');
 end;
 
 function Indefinite(s: String; qty: Integer): String;
@@ -428,11 +443,80 @@ begin
   end;
 end;
 
+procedure TMainForm.InterplotCinematic;
+var
+  nemesis: String;
+  i, s: Integer;
+begin
+  case Random(3) of
+  0: begin
+    Q('task|1|Exhausted, you arrive at a friendly oasis in a hostile land');
+    Q('task|2|You greet old friends and meet new allies');
+    Q('task|2|You are privy to a council of powerful do-gooders');
+    Q('task|1|There is much to be done. You are chosen!');
+     end;
+  1: begin
+    Q('task|1|Your quarry is in sight, but a mighty enemy bars your path!');
+    nemesis := NamedMonster(GetI(Traits,'Level')+3);
+    Q('task|4|A desperate struggle commences with ' + nemesis);
+    s := Random(3);
+    for i := 1 to Random(1 + Plots.Items.Count) do begin
+      Inc(s, 1 + Random(2));
+      case s mod 3 of
+      0: Q('task|2|Locked in grim combat with ' + nemesis);
+      1: Q('task|2|' + nemesis + ' seems to have the upper hand');
+      2: Q('task|2|You seem to gain the advantage over ' + nemesis);
+      end;
+    end;
+    Q('task|3|Victory! ' + nemesis + ' is slain! Exhausted, you lose conciousness');
+    Q('task|2|You awake in a friendly place, but the road awaits');
+      end;
+  2: begin
+    nemesis := ImpressiveGuy;
+    Q('task|2|Oh sweet relief! You''ve reached the protection of the good ' + nemesis);
+    Q('task|3|There is rejoicing, and an unnerving encouter with ' + nemesis + ' in private');
+    Q('task|2|You forget your ' + BoringItem + ' and go back to get it');
+    Q('task|2|What''s this!? You overhear something shocking!');
+    Q('task|2|Could ' + nemesis + ' be a dirty double-dealer?');
+    Q('task|3|Who can possibly be trusted with this news!? ... Oh yes, of course');
+      end;
+  end;
+  Q('plot|1|Loading');
+end;
+
+
+function TMainForm.NamedMonster(level: Integer): String;
+var
+  lev, i: Integer;
+  m: String;
+begin
+  lev := 0;  // shut up, compiler hint
+  for i := 1 to 5 do begin
+    m := Pick(K.Monsters.Lines);
+    if (Result = '') or (abs(level-StrToInt(Split(m,1))) < abs(level-lev)) then begin
+      Result := Split(m,0);
+      lev := StrToInt(Split(m,1));
+    end;
+  end;
+  Result := GenerateName + ' the ' + Result;
+end;
+
+function TMainForm.ImpressiveGuy: String;
+begin
+  Result := Pick(K.ImpressiveTitles.Lines);
+  case Random(2) of
+  0: Result := Result + ' of the ' + Pick(K.Races.Lines);
+  1: Result := Result + ' of ' + GenerateName;
+  end;
+end;
+
 function TMainForm.MonsterTask(var level: Integer): String;
 var
   qty, lev, i: Integer;
   monster, m1: string;
+  definite: Boolean;
 begin
+  definite := false;
   for i := level downto 1 do begin
     if Odds(2,5) then
       Inc(level, RandSign());
@@ -442,7 +526,13 @@ begin
 
   if Odds(1,25) then begin
     // use an NPC every once in a while
-    monster := 'passing ' + Pick(NewGuyForm.Race.Items) + ' ' + Pick(NewGuyForm.Klass.Items);
+    monster := ' ' + Pick(NewGuyForm.Race.Items);
+    if Odds(1,2)
+    then monster := 'passing' + monster + ' ' + Pick(NewGuyForm.Klass.Items)
+    else begin
+      monster := PickLow(K.Titles.Lines) + ' ' + GenerateName + ' the' + monster;
+      definite := true;
+    end;
     lev := level;
     monster := monster + '|' + IntToStr(level) + '|*';
   end else if (fQuest.Caption <> '') and Odds(1,4) then begin
@@ -501,7 +591,7 @@ begin
   lev := level;
   level := lev * qty;
 
-  Result := Indefinite(Result, qty);
+  if not definite then Result := Indefinite(Result, qty);
 end;
 
 function ProperCase(s:String):String;
@@ -554,7 +644,11 @@ begin
       a := Split(fQueue.Items[0],0);
       n := StrToInt(Split(fQueue.Items[0],1));
       s := Split(fQueue.Items[0],2);
-      if a = 'task' then begin
+      if (a = 'task') or (a = 'plot') then begin
+        if a = 'plot' then begin
+          CompleteAct;
+          s := 'Loading ' + Plots.Items[Plots.Items.Count-1].Caption;
+        end;
         Task(s, n * 1000);
         fQueue.Items.Delete(0);
       end else begin
@@ -626,10 +720,10 @@ begin
   list.Items[pos].Selected := true;
 end;
 
-function LevelUpTime(level: Integer): Integer;
+function LevelUpTime(level: Integer): Integer;  // seconds
 begin
-  // ~20 minutes for level 1, eventually dominated by exponential
-  Result := Round((20.0 + IntPower(1.15,level)) * 60.0);
+  // 20 minutes per level
+  Result := 20 * level * 60;
 end;
 
 procedure TMainForm.GoButtonClick(Sender: TObject);
@@ -915,9 +1009,12 @@ begin
       Width := Width-1;
     end;
   end;
+  WinItem;
+  WinEquip;
   SaveGame;
   Brag('a');
 end;
+
 
 {$IFDEF LOGGING}
 procedure TMainForm.Log(line: String);
@@ -1128,11 +1225,13 @@ begin
 
       if Kill.SimpleText = 'Loading....' then Max := 0;
 
+      // gain XP / level up
       if gain then with ExpBar do if Position >= Max
       then LevelUp
       else Position := Position + TaskBar.Max div 1000;
       with ExpBar do Hint := IntToStr(Max-Position) + ' XP needed for next level';
 
+      // advance quest
       if gain then if Plots.Items.Count > 1 then with QuestBar do if Position >= Max then begin
           CompleteQuest;
       end else if Quests.Items.Count > 0 then begin
@@ -1140,8 +1239,9 @@ begin
           Hint := IntToStr(100 * Position div Max) + '% complete';
       end;
 
-      with PlotBar do if Position >= Max
-      then CompleteAct
+      // advance plot
+      if gain then with PlotBar do if Position >= Max
+      then InterplotCinematic
       else Position := Position + TaskBar.Max div 1000;
 
       //Time.Caption := FormatDateTime('h:mm:ss',PlotBar.Position / (24.0 * 60 * 60));
@@ -1153,7 +1253,7 @@ begin
       elapsed := LongInt(timeGetTime) - LongInt(Timer1.Tag);
       if elapsed > 100 then elapsed := 100;
       if elapsed < 0 then elapsed := 0;
-      Position := Position + elapsed;//Integer(Timer1.Interval);
+      Position := Position + elapsed;
     end;
   end;
   Timer1.Tag := timeGetTime;
@@ -1231,7 +1331,7 @@ end;
 
 const
   KUsage =
-    'Usage: pq [flags] [game.pq]'#10 +
+    'Usage: pq [flags] [game.pq3]'#10 +
     #10 +
     'Flags:'#10 +
     '  -no-backup     Do not make a backup file when saving the game'#10 +
@@ -1395,10 +1495,6 @@ begin
     f.Free;
   except
     on EZCompressionError do begin
-      // backwards-compatibility
-      //m.Free;
-      //m := f;
-      //f := nil;
       ShowMessage('Error loading game.');
       Close;
       Exit;

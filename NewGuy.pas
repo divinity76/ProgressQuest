@@ -44,6 +44,7 @@ type
     procedure ApplicationEvents1Minimize(Sender: TObject);
     procedure GenClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     procedure RollEm;
     function GetAccount: String;
@@ -57,10 +58,11 @@ var
   NewGuyForm: TNewGuyForm;
 
 function UrlEncode(s: string): string;
+function GenerateName: string;
 
 implementation
 
-uses Main, SelServ, StrUtils, Web;
+uses Main, SelServ, StrUtils, Web, Config;
 
 {$R *.dfm}
 
@@ -248,6 +250,18 @@ begin
     GenClick(Sender);
     Name.SetFocus;
   end;
+end;
+
+procedure TNewGuyForm.FormCreate(Sender: TObject);
+var
+  i: Integer;
+begin
+  Race.Items.Clear;
+  for i := 0 to K.Races.Lines.Count-1 do
+    Race.Items.Add(Split(K.Races.Lines[i],0));
+  Klass.Items.Clear;
+  for i := 0 to K.Klasses.Lines.Count-1 do
+    Klass.Items.Add(Split(K.Klasses.Lines[i],0));
 end;
 
 end.

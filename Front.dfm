@@ -5,7 +5,7 @@ object FrontForm: TFrontForm
   BorderIcons = []
   BorderStyle = bsNone
   BorderWidth = 2
-  ClientHeight = 251
+  ClientHeight = 255
   ClientWidth = 452
   Color = clRed
   TransparentColorValue = clWhite
@@ -93,19 +93,19 @@ object FrontForm: TFrontForm
     Left = 0
     Top = 0
     Width = 452
-    Height = 251
+    Height = 255
     Align = alClient
     BevelInner = bvLowered
     Color = clWhite
     TabOrder = 0
     object Label2: TLabel
       Left = 2
-      Top = 236
+      Top = 240
       Width = 448
       Height = 13
       Align = alBottom
       Alignment = taCenter
-      Caption = #169' 2003 Eric Fredricksen - v6.2'
+      Caption = #169' 2003 Eric Fredricksen - v6.3'
       Color = clWhite
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 11382189
@@ -184,7 +184,7 @@ object FrontForm: TFrontForm
       Left = 2
       Top = 2
       Width = 251
-      Height = 234
+      Height = 238
       Align = alLeft
       BevelOuter = bvNone
       BorderWidth = 10
@@ -4499,8 +4499,8 @@ object FrontForm: TFrontForm
     end
   end
   object OpenDialog1: TOpenDialog
-    DefaultExt = 'pq'
-    Filter = 'Progress Quest games|*.pq'
+    DefaultExt = 'pq3'
+    Filter = 'Progress Quest games|*.pq3'
     Left = 476
     Top = 240
   end

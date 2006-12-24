@@ -1,12 +1,9 @@
-[contents of readme]
-ProgressQuest v6.2 (probably as released)
------------------------------------------
+ProgressQuest v6.3
+------------------
 This directory represents an ex post facto rendering of pq6 in its
 various versions in svn, so that changes will be trackable thataway.
 
-The version as of this moment in svn is 6.2 (but I had two copies
-around, so I'm not positive this is the final one, and not the previous
-rev checked in)
+The version as of this moment in svn is 6.3
 
 (I didn't add this file in PQ 6.0, but after that you can use this README
 to trace the checkin history using svn.)

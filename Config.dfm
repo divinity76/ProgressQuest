@@ -1,7 +1,7 @@
 object K: TK
-  Left = 335
-  Top = 119
-  Width = 572
+  Left = 457
+  Top = 331
+  Width = 800
   Height = 567
   Caption = 'K'
   Color = clBtnFace
@@ -111,6 +111,34 @@ object K: TK
     Height = 13
     Caption = 'DefenseBad'
   end
+  object Label15: TLabel
+    Left = 480
+    Top = 8
+    Width = 26
+    Height = 13
+    Caption = 'Race'
+  end
+  object Label16: TLabel
+    Left = 480
+    Top = 120
+    Width = 25
+    Height = 13
+    Caption = 'Class'
+  end
+  object Label17: TLabel
+    Left = 328
+    Top = 120
+    Width = 25
+    Height = 13
+    Caption = 'Titles'
+  end
+  object Label18: TLabel
+    Left = 476
+    Top = 428
+    Width = 74
+    Height = 13
+    Caption = 'Impressive titles'
+  end
   object Spells: TMemo
     Left = 8
     Top = 132
@@ -124,6 +152,7 @@ object K: TK
       'Sadness'
       'Seasick'
       'Gyp'
+      'Shoelaces'
       'Innoculate'
       'Cone of Annoyance'
       'Magnetic Orb'
@@ -133,6 +162,7 @@ object K: TK
       'Spectral Miasma'
       'Clever Fellow'
       'Lockjaw'
+      'History Lesson'
       'Hydrophobia'
       'Big Sister'
       'Cone of Paste'
@@ -289,6 +319,7 @@ object K: TK
       'Crankbow|6'
       'Blibo|7'
       'Broadsword|7'
+      'Kreen|7'
       'Morning Star|8'
       'Pole-adze|8'
       'Spontoon|8'
@@ -343,7 +374,8 @@ object K: TK
       'Bijou'
       'Spangle'
       'Gimcrack'
-      'Hood')
+      'Hood'
+      'Vulpeculum')
     TabOrder = 6
     WordWrap = False
   end
@@ -495,7 +527,8 @@ object K: TK
       'casket'
       'nosegay'
       'trinket'
-      'credenza')
+      'credenza'
+      'writ')
     TabOrder = 9
     WordWrap = False
   end
@@ -571,7 +604,7 @@ object K: TK
       'Brass Dragon|7|pole'
       'Tin Dragon|8|*'
       'Bronze Dragon|9|medal'
-      'Chromatic Dragon|16|mineral water'
+      'Chromatic Dragon|16|scale'
       'Copper Dragon|8|loafer'
       'Gold Dragon|8|filling'
       'Green Dragon|8|*'
@@ -734,7 +767,8 @@ object K: TK
       'Uruk|2|boot'
       'Poroid|4|node'
       'Moakum|8|frenum'
-      'Fly|0|*')
+      'Fly|0|*'
+      'Hogbird|3|curl')
     TabOrder = 10
     WordWrap = False
   end
@@ -802,6 +836,98 @@ object K: TK
       'Warped|-3'
       'Corroded|-3')
     TabOrder = 13
+    WordWrap = False
+  end
+  object Races: TMemo
+    Left = 480
+    Top = 24
+    Width = 249
+    Height = 89
+    Lines.Strings = (
+      'Half Orc|HP Max'
+      'Half Man|CHA'
+      'Half Halfling|DEX'
+      'Double Hobbit|STR'
+      'Hob-Hobbit|DEX,CON'
+      'Low Elf|CON'
+      'Dung Elf|WIS'
+      'Talking Pony|MP Max,INT'
+      'Gyrognome|DEX'
+      'Lesser Dwarf|CON'
+      'Crested Dwarf|CHA'
+      'Eel Man|DEX'
+      'Panda Man|CON,STR'
+      'Trans-Kobold|WIS'
+      'Enchanted Motorcycle|MP Max'
+      'Will o'#39' the Wisp|WIS'
+      'Battle-Finch|DEX,INT'
+      'Double Wookiee|STR'
+      'Skraeling|WIS'
+      'Demicanadian|CON'
+      'Land Squid|STR,HP Max')
+    TabOrder = 14
+  end
+  object Klasses: TMemo
+    Left = 480
+    Top = 136
+    Width = 249
+    Height = 89
+    Lines.Strings = (
+      'Ur-Paladin|WIS,CON'
+      'Voodoo Princess|INT,CHA'
+      'Robot Monk|STR'
+      'Mu-Fu Monk|DEX'
+      'Mage Illusioner|INT,MP Max'
+      'Shiv-Knight|DEX'
+      'Inner Mason|CON'
+      'Fighter/Organist|CHA,STR'
+      'Puma Burgular|DEX'
+      'Runeloremaster|WIS'
+      'Hunter Strangler|DEX,INT'
+      'Battle-Felon|STR'
+      'Tickle-Mimic|WIS,INT'
+      'Slow Poisoner|CON'
+      'Bastard Lunatic|CON'
+      'Lowling|WIS'
+      'Birdrider|WIS'
+      'Vermineer|INT')
+    TabOrder = 15
+  end
+  object Titles: TMemo
+    Left = 328
+    Top = 136
+    Width = 57
+    Height = 81
+    Lines.Strings = (
+      'Mr.'
+      'Mrs.'
+      'Sir'
+      'Sgt.'
+      'Ms.'
+      'Captain'
+      'Chief'
+      'Admiral'
+      'Saint')
+    TabOrder = 16
+  end
+  object ImpressiveTitles: TMemo
+    Left = 476
+    Top = 442
+    Width = 149
+    Height = 89
+    Lines.Strings = (
+      'King'
+      'Queen'
+      'Lord'
+      'Lady'
+      'Viceroy'
+      'Mayor'
+      'Prince'
+      'Princess'
+      'Chief'
+      'Boss'
+      'Archbishop')
+    TabOrder = 17
     WordWrap = False
   end
 end

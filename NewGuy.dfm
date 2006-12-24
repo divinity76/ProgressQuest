@@ -1,6 +1,6 @@
 object NewGuyForm: TNewGuyForm
-  Left = 203
-  Top = 146
+  Left = 693
+  Top = 336
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Progress Quest - New Character'
@@ -86,6 +86,7 @@ object NewGuyForm: TNewGuyForm
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -100,10 +101,10 @@ object NewGuyForm: TNewGuyForm
       'Half Man'
       'Half Halfling'
       'Double Hobbit'
+      'Gobhobbit'
       'Low Elf'
       'Dung Elf'
       'Talking Pony'
-      'Greater Gnome'
       'Gyrognome'
       'Lesser Dwarf'
       'Crested Dwarf'
@@ -136,14 +137,14 @@ object NewGuyForm: TNewGuyForm
       'Fighter/Organist'
       'Puma Burgular'
       'Runeloremaster'
-      'Tongueblade'
       'Hunter Strangler'
       'Battle-Felon'
       'Tickle-Mimic'
       'Slow Poisoner'
       'Bastard Lunatic'
       'Lowling'
-      'Birdrider')
+      'Birdrider'
+      'Vermineer')
     TabOrder = 1
   end
   object GroupBox1: TGroupBox

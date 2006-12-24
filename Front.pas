@@ -23,10 +23,6 @@ type
     Label1: TLabel;
     procedure HomeLinkClick(Sender: TObject);
     procedure LogoClick(Sender: TObject);
-  private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 var
@@ -40,12 +36,12 @@ uses ShellAPI, Main, Info;
 
 procedure TFrontForm.HomeLinkClick(Sender: TObject);
 begin
-	ShellExecute(GetDesktopWindow(), 'open', 'http://progressquest.com/', nil, '', SW_SHOW);
+  ShellExecute(GetDesktopWindow(), 'open', 'http://progressquest.com/', nil, '', SW_SHOW);
 end;
 
 procedure TFrontForm.LogoClick(Sender: TObject);
 begin
-	ShellExecute(GetDesktopWindow(), 'open', 'http://progressquest.com/', nil, '', SW_SHOW);
+  ShellExecute(GetDesktopWindow(), 'open', 'http://progressquest.com/', nil, '', SW_SHOW);
 end;
 
 end.
