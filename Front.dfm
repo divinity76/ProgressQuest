@@ -105,7 +105,7 @@ object FrontForm: TFrontForm
       Height = 13
       Align = alBottom
       Alignment = taCenter
-      Caption = #169' 2002 Eric Fredricksen - v6.1'
+      Caption = #169' 2002 Eric Fredricksen - v6.2'
       Color = clWhite
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 11382189

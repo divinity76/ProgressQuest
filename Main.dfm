@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 226
-  Top = 145
+  Left = 281
+  Top = 121
   Width = 682
   Height = 569
   HorzScrollBar.Visible = False
@@ -551,8 +551,8 @@ object MainForm: TMainForm
         ParentColor = False
       end
       object fQueue: TListBox
-        Left = 12
-        Top = 72
+        Left = 48
+        Top = 76
         Width = 49
         Height = 45
         ItemHeight = 13

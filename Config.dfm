@@ -377,7 +377,7 @@ object K: TK
       'Ostentatious'
       'One True'
       'Proverbial'
-      'Fearsome '
+      'Fearsome'
       'Deadly'
       'Benevolent'
       'Unearthly'

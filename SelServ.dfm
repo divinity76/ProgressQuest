@@ -1,6 +1,6 @@
 object ServerSelectForm: TServerSelectForm
-  Left = 279
-  Top = 201
+  Left = 292
+  Top = 57
   Width = 490
   Height = 381
   Caption = 'Progress Quest - Select Realm'
@@ -207,25 +207,11 @@ object ServerSelectForm: TServerSelectForm
     Visible = False
     OnChange = AccessCodeChange
   end
-  object ServerLoader: TNMHTTP
-    Port = 0
-    ReportLevel = 0
-    Body = 'Default.htm'
-    Header = 'Head.txt'
-    HeaderInfo.Cookie = 'yumyum'
-    HeaderInfo.Password = 'chickens'
-    InputFileMode = False
-    OutputFileMode = False
-    OnSuccess = ServerLoaderSuccess
-    ProxyPort = 0
-    Left = 220
-    Top = 152
-  end
   object Timer1: TTimer
     Enabled = False
     Interval = 10
     OnTimer = Timer1Timer
-    Left = 116
-    Top = 4
+    Left = 224
+    Top = 76
   end
 end

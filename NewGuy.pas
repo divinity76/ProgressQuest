@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Psock, NMHttp, NMURL, AppEvnts;
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, AppEvnts, NMURL;
 
 type
   TNewGuyForm = class(TForm)
@@ -32,27 +32,21 @@ type
     Name: TLabeledEdit;
     OldRolls: TListBox;
     Button2: TButton;
-    Server: TNMHTTP;
     PoorCodeDesign: TNMURL;
     Account: TLabeledEdit;
     Password: TLabeledEdit;
     ApplicationEvents1: TApplicationEvents;
-    GuildGet: TNMHTTP;
     procedure RerollClick(Sender: TObject);
     procedure UnrollClick(Sender: TObject);
-    procedure ServerSuccess(Cmd: CmdType);
     procedure SoldClick(Sender: TObject);
-    procedure ServerFailure(Cmd: CmdType);
     procedure FormShow(Sender: TObject);
-    procedure ServerAboutToSend(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
-    procedure GuildGetSuccess(Cmd: CmdType);
   private
     procedure RollEm;
     function GetAccount: String;
     function GetPassword: String;
+    procedure ParseSoldResponse(body: String);
   public
-    procedure BragSuccess(Cmd: CmdType);
     function Go: Boolean;
   end;
 
@@ -63,7 +57,7 @@ function UrlEncode(s: string): string;
 
 implementation
 
-uses Main, SelServ;
+uses Main, SelServ, StrUtils, Web;
 
 {$R *.dfm}
 
@@ -148,24 +142,16 @@ begin
   RollEm;
 end;
 
-procedure TNewGuyForm.ServerSuccess(Cmd: CmdType);
+procedure TNewGuyForm.ParseSoldResponse(body: String);
 begin
-  if (LowerCase(Split(Server.Body,0)) = 'ok') then begin
-    MainForm.SetPasskey(Split(Server.Body,1));
+  if (LowerCase(Split(body,0)) = 'ok') then begin
+    MainForm.SetPasskey(Split(body,1));
     MainForm.SetLogin(GetAccount);
     MainForm.SetPassword(GetPassword);
-    Server.OnSuccess := nil;
-    Server.OnFailure := nil;
     ModalResult := mrOk;
   end else begin
-    ShowMessage(Server.Body);
+    ShowMessage(body);
   end;
-end;
-
-procedure TNewGuyForm.BragSuccess(Cmd: CmdType);
-begin
-  if (LowerCase(Split(Server.Body,0)) = 'report') then
-    ShowMessage(Split(Server.Body,1));
 end;
 
 function TNewGuyForm.GetAccount: String;
@@ -189,20 +175,19 @@ begin
     try
       Screen.Cursor := crHourglass;
       try
-        Server.HeaderInfo.UserId := GetAccount;
-        Server.HeaderInfo.Password := GetPassword;
+        if (MainForm.Label8.Tag and 16) = 0
+        then url := MainForm.GetHostAddr
+        else url := 'http://www.progressquest.com/create.php?';
+        if (GetAccount <> '') or (GetPassword <> '') then
+          url := StuffString(url, 8, 0, GetAccount+':'+GetPassword+'@');
         args := 'cmd=create' +
                 '&name=' + UrlEncode(Name.Text) +
                 '&realm=' + UrlEncode(MainForm.GetHostName) +
                 RevString;
-        if (MainForm.Label8.Tag and 16) = 0
-        then url := MainForm.GetHostAddr
-        else url := 'http://www.progressquest.com/create.php?';
-        Server.Get(url + args);
+        ParseSoldResponse(DownloadString(url + args));
       except
-        on ESockError do begin
+        on EWebError do begin
           ShowMessage('Error connecting to server');
-          Server.Abort;
         end;
       end;
     finally
@@ -211,31 +196,18 @@ begin
   end;
 end;
 
-procedure TNewGuyForm.ServerFailure(Cmd: CmdType);
-begin
-  ShowMessage('Connection to server ' + MainForm.GetHostName + ' failed');
-end;
-
+{
 procedure TNewGuyForm.ServerAboutToSend(Sender: TObject);
 begin
   Server.SendHeader.Values['Content-Type'] := 'text/plain';
   Server.SendHeader.Values['Motto'] := MainForm.GetMotto;
   Server.SendHeader.Values['Guild'] := MainForm.GetGuild;
 end;
-
+ }
+ 
 procedure TNewGuyForm.ApplicationEvents1Minimize(Sender: TObject);
 begin
   MainForm.MinimizeIt;
-end;
-
-procedure TNewGuyForm.GuildGetSuccess(Cmd: CmdType);
-var s,b: string;
-begin
-  b := GuildGet.Body;
-  s := Take(b);
-  if s <> '' then ShowMessage(s);
-  s := Take(b);
-  if s <> '' then Navigate(s);
 end;
 
 end.

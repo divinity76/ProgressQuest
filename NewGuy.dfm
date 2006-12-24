@@ -1,6 +1,6 @@
 object NewGuyForm: TNewGuyForm
-  Left = 323
-  Top = 164
+  Left = 203
+  Top = 146
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Progress Quest - New Character'
@@ -354,21 +354,6 @@ object NewGuyForm: TNewGuyForm
     TabOrder = 8
     Visible = False
   end
-  object Server: TNMHTTP
-    Port = 0
-    ReportLevel = 0
-    Body = 'Default.htm'
-    Header = 'Head.txt'
-    HeaderInfo.Referer = 'PQ6.1'
-    InputFileMode = False
-    OutputFileMode = False
-    OnAboutToSend = ServerAboutToSend
-    OnSuccess = ServerSuccess
-    OnFailure = ServerFailure
-    ProxyPort = 0
-    Left = 332
-    Top = 312
-  end
   object PoorCodeDesign: TNMURL
     Left = 336
     Top = 268
@@ -377,19 +362,5 @@ object NewGuyForm: TNewGuyForm
     OnMinimize = ApplicationEvents1Minimize
     Left = 332
     Top = 208
-  end
-  object GuildGet: TNMHTTP
-    Port = 0
-    ReportLevel = 0
-    Body = 'Default.htm'
-    Header = 'Head.txt'
-    HeaderInfo.Referer = 'PQ6.1'
-    InputFileMode = False
-    OutputFileMode = False
-    OnAboutToSend = ServerAboutToSend
-    OnSuccess = GuildGetSuccess
-    ProxyPort = 0
-    Left = 332
-    Top = 340
   end
 end

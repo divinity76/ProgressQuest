@@ -5,12 +5,12 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, ImgList, Menus, Psock,
-  NMHttp, ShellAPI;
+  Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, ImgList, Menus, ShellAPI;
 
 const
-  RevString = '&rev=3';
+  RevString = '&rev=4';
   wmIconTray = WM_USER + Ord('t');
+  kFileExt = '.pq';
 
 type
   TMainForm = class(TForm)
@@ -84,11 +84,23 @@ type
     procedure TriggerAutosizes;
     function GameSaveName: String;
     procedure OnTrayMessage(var Msg: TMessage); message wmIconTray;
-    procedure OnSysCommand(Var Msg : TWMSysCommand); message WM_SYSCOMMAND;
+    procedure OnSysCommand(var Msg : TWMSysCommand); message WM_SYSCOMMAND;
     procedure Guildify;
     procedure ClearAllSelections;
+    procedure OnQueryEndSession(var Msg : TMessage); message WM_QUERYENDSESSION;
+    procedure OnEndSession(var Msg : TMessage); message WM_ENDSESSION;
+    procedure RestoreIt;
+    function AuthenticateUrl(url: String): String;
+    procedure Log(line: String);
+    procedure ExportCharSheet;
   public
     FTrayIcon: TNotifyIconData;
+    FReportSave: Boolean;
+    FLogEvents: Boolean;
+    FMakeBackups: Boolean;
+    FMinToTray: Boolean;
+    FExportSheets: Boolean;
+    FSaveFileName: String;
     procedure MinimizeIt;
     procedure LoadGame(name: String);
     function SaveGame: Boolean;
@@ -128,21 +140,65 @@ procedure Navigate(url: String);
 
 implementation
 
-uses NewGuy, Math, Config, Front, zlibex, SelServ, Login, mmsystem;
+uses Web, StrUtils, NewGuy, Math, Config, Front, zlibex, SelServ, Login,
+  mmsystem, Registry, ShlObj;
 
 {$R *.dfm}
-{ D E F I N E CHEATS}
+{$DEFINE CHEATS}
+
+// Returns '' if not there, which is lame, but okay for my purposes
+function RegRead(root: HKEY; path, name: String): String;
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := root;
+    if Reg.OpenKey(path, false) then
+      Result := Reg.ReadString(name);
+    Reg.CloseKey;
+  finally
+    Reg.Free;
+  end;
+end;
+
+procedure RegWrite(root: HKEY; path, name, value: String);
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := root;
+    Reg.OpenKey(path, true);
+    Reg.WriteString(name, value);
+    Reg.CloseKey;
+  finally
+    Reg.Free;
+  end;
+end;
 
 procedure MakeFileAssociations;
+const
+  kPQFileType = 'ProgressQuest.GameSave';
+var
+  kOpenCommand: String;
 begin
-// HKCR/.pq (Default)="pqfile"
-// HKCR/pqfile (Default)="Progress Quest saved game"
-// HKCR/pqfile/shell (Default)="open"
-// HKCR/pqfile/shell/open/command (Default)='c:\blah\pq.exe "%1"'
+  kOpenCommand := '"' + Application.ExeName + '" "%1"';
+  RegWrite(HKEY_CLASSES_ROOT, kFileExt,'', kPQFileType);
+  RegWrite(HKEY_CLASSES_ROOT, kPQFileType, '', 'Progresss Quest saved game');
+  RegWrite(HKEY_CLASSES_ROOT, kPQFileType + '\DefaultIcon', '', Application.ExeName + ',0');
+  RegWrite(HKEY_CLASSES_ROOT, kPQFileType + '\Shell\Open', '', '&Open');
+  if RegRead(HKEY_CLASSES_ROOT, kPQFileType + '\Shell\Open\Command', '') <> kOpenCommand then begin
+    RegWrite(HKEY_CLASSES_ROOT, kPQFileType + '\Shell\Open\Command', '', kOpenCommand);
+    // Notify Windows Explorer to realize we added this. In case this is slow
+    // I don't do this unless I'm sure this one has changed.
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nil, nil);
+  end;
 end;
 
 procedure TMainForm.MinimizeIt;
 begin
+  if not FMinToTray then Exit;
   with FTrayIcon do
   begin
     cbSize := SizeOf(FTrayIcon);
@@ -151,7 +207,7 @@ begin
     uFlags := NIF_MESSAGE + NIF_ICON + NIF_TIP;
     uCallbackMessage := wmIconTray;
     hIcon := Application.Icon.Handle;
-    StrPCopy(szTip, Application.Title);
+    StrPCopy(szTip, Caption);
     //a.szTip := 'Progress Quest';
   end;
   Application.Minimize;
@@ -161,30 +217,24 @@ end;
 
 procedure TMainForm.OnSysCommand(var Msg: TWMSysCommand);
 begin
-  if (Msg.CmdType = SC_MINIMIZE) then
+  if (Msg.CmdType = SC_MINIMIZE) and FMinToTray then
     MinimizeIt();
   inherited;
 end;
 
+procedure TMainForm.RestoreIt;
+begin
+  ShowWindow(Application.Handle, SW_SHOW);
+  Application.Restore;
+  Shell_NotifyIcon(NIM_DELETE, @MainForm.FTrayIcon);
+end;
+
 procedure TMainForm.OnTrayMessage(var Msg: TMessage);
-var
-  p : TPoint;
+//var  p : TPoint;
 begin
   case Msg.lParam of
     WM_LBUTTONDOWN, WM_RBUTTONDOWN:
-    begin
-      ShowWindow(Application.Handle, SW_SHOW);
-      Application.Restore;
-      Shell_NotifyIcon(NIM_DELETE, @MainForm.FTrayIcon);
-    end;
-{    WM_RBUTTONDOWN:
-    begin
-       //SetForegroundWindow(Handle);
-       //GetCursorPos(p);
-       //PopUpMenu1.Popup(p.x, p.y);
-       //PostMessage(Handle, WM_NULL, 0, 0);
-    end;
-}
+      RestoreIt;
   end;
 end;
 
@@ -195,6 +245,8 @@ begin
     //Shell_NotifyIcon(NIM_ADD, @MainForm.FTrayIcon);
   end;
   MainForm.Timer1.Enabled := True;
+  // BS location for this but
+  MainForm.Caption := 'ProgressQuest - ' + ChangeFileExt(MainForm.GameSaveName, '');
 end;
 
 function TMainForm.GetPasskey: Integer; begin Result := Traits.Tag; end;
@@ -327,7 +379,7 @@ function Young(m: Integer; s: String): String;
 begin
   Result := IntToStr(m) + s; // in case I screw up
   case -m of
-  -5,5: Result := 'fœtal ' + s;
+  -5,5: Result := 'fetal ' + s;
   -4,4: Result := 'baby ' + s;
   -3,3: Result := 'preadolescent ' + s;
   -2,2: Result := 'teenage ' + s;
@@ -708,12 +760,14 @@ var
   lev, level, l, i, montag: Integer;
   m: string;
 begin
+  lev := 0;  // Quell stupid compiler warning
   with QuestBar do begin
     Position := 0;
     Max := 50 + Random(100);
   end;
   with Quests do begin
     if Items.Count > 0 then begin
+      Log('Quest completed: ' + Items[Items.Count-1].Caption);
       Items[Items.Count-1].StateIndex := 1;
       case Random(4) of
         0: WinSpell;
@@ -770,6 +824,7 @@ begin
           fQuest.Caption := '';
         end;
       end;
+      Log('Commencing quest: ' + Caption);
       StateIndex := 0;
       MakeVisible(false);
     end;
@@ -849,9 +904,79 @@ begin
   Brag('a');
 end;
 
+procedure TMainForm.Log(line: String);
+var
+  stamp: String;
+  logname: String;
+  log: TextFile;
+begin
+  if FLogEvents then begin
+    logname := ChangeFileExt(GameSaveName, '.log');
+    DateTimeToString(stamp, '[yyyy-mm-dd hh:nn:ss]', Now);
+    AssignFile(log, logname);
+    if FileExists(logname) then Append(log) else Rewrite(log);
+    WriteLn(log, stamp + ' ' + line);
+    Flush(log);
+    CloseFile(log);
+  end;
+end;
+
+procedure TMainForm.ExportCharSheet;
+var
+  f: TextFile;
+  i: Integer;
+begin
+  AssignFile(f, ChangeFileExt(GameSaveName, '.sheet'));
+  Rewrite(f);
+  Write(f,Get(Traits,'Name'));
+  if GetHostName <> '' then
+    Write(f,' [' + GetHostName + ']');
+  WriteLn(f);
+  WriteLn(f,Get(Traits,'Race') + ' ' +  Get(Traits,'Class'));
+  WriteLn(f,Format('Level %d (exp. %d/%d)', [GetI(Traits,'Level'), ExpBar.Position, ExpBar.Max]));
+  //WriteLn(f,'Level ' + Get(Traits,'Level') + ' (' + ExpBar.Hint + ')');
+  WriteLn(f);
+  with Plots do if Items.Count > 0 then
+    WriteLn(f,'Plot stage: ' + Items[Items.Count-1].Caption + ' (' + PlotBar.Hint + ')');
+  with Quests do if Items.Count > 0 then
+    WriteLn(f,'Quest: ' + Items[Items.Count-1].Caption + ' (' + QuestBar.Hint + ')');
+  WriteLn(f);
+  WriteLn(f, 'Stats:');
+  WriteLn(f, Format('  STR%7d', [GetI(Stats,'STR')]));
+  WriteLn(f, Format('  CON%7d', [GetI(Stats,'CON')]));
+  WriteLn(f, Format('  DEX%7d', [GetI(Stats,'DEX')]));
+  WriteLn(f, Format('  INT%7d', [GetI(Stats,'INT')]));
+  WriteLn(f, Format('  WIS%7d      HP Max%7d', [GetI(Stats,'WIS'), GetI(Stats,'HP Max')]));
+  WriteLn(f, Format('  CHA%7d      MP Max%7d', [GetI(Stats,'CHA'), GetI(Stats,'MP Max')]));
+  WriteLn(f);
+  WriteLn(f, 'Equipment:');
+  for i := 1 to Equips.Items.Count-1 do
+    if Get(Equips,i) <> '' then
+      WriteLn(f, '  ' + LeftStr(Equips.Items[i].Caption + '            ', 12) + Get(Equips,i));
+  WriteLn(f);
+  WriteLn(f, 'Spell Book:');
+  with Spells do
+    for i := 1 to Items.Count-1 do
+      WriteLn(f, '  ' + Items[i].Caption + ' ' + Get(Spells,i));
+  WriteLn(f);
+  WriteLn(f, 'Inventory (' + EncumBar.Hint + '):');
+  WriteLn(f, '  ' + Indefinite('gold piece', GetI(Inventory, 'Gold')));
+  with Inventory do
+    for i := 2 to Items.Count-1 do
+      if Pos(' of ', Items[i].Caption) > 0
+      then WriteLn(f, '  ' + Definite(Items[i].Caption, GetI(Inventory,i)))
+      else WriteLn(f, '  ' + Indefinite(Items[i].Caption, GetI(Inventory,i)));
+  WriteLn(f);
+  WriteLn(f, '-- ' + DateTimeToStr(Now));
+  WriteLn(f, '-- Progress Quest 6.2 - http://progressquest.com/');
+  Flush(f);
+  CloseFile(f);
+end;
+
 procedure TMainForm.Task(caption: String; msec: Integer);
 begin
   Kill.SimpleText := caption + '...';
+  Log(Kill.SimpleText);
   with TaskBar do begin
     Position := 0;
     Max := msec;
@@ -859,8 +984,19 @@ begin
 end;
 
 procedure TMainForm.Add(list: TListView; key: String; value: Integer);
+var line: String;
 begin
   Put(list, key, value + GetI(list,key));
+  if value = 0 then Exit;
+
+  if value > 0 then line := 'Gained' else line := 'Lost';
+  if key = 'Gold' then begin
+    key := 'gold piece';
+    if value > 0 then line := 'Got paid' else line := 'Spent';
+  end;
+  if value < 0 then value := -value;
+  line := line + ' ' + Indefinite(key, value);
+  Log(line);
 end;
 
 procedure TMainForm.AddR(list: TListView; key: String; value: Integer);
@@ -982,7 +1118,7 @@ begin
 
       Dequeue();
     end else with TaskBar do begin
-      elapsed := timeGetTime - Timer1.Tag;
+      elapsed := LongInt(timeGetTime) - LongInt(Timer1.Tag);
       if elapsed > 100 then elapsed := 100;
       if elapsed < 0 then elapsed := 0;
       Position := Position + elapsed;//Integer(Timer1.Interval);
@@ -998,6 +1134,14 @@ begin
   TaskBar.Position := 0;
   ExpBar.Position := 0;
   Encumbar.Position := 0;
+
+  FReportSave := true;
+  FLogEvents := false;
+  FMakeBackups := false;
+  FMinToTray := true;
+  FExportSheets := false;
+
+  MakeFileAssociations;
 end;
 
 procedure TMainForm.SpeedButton1Click(Sender: TObject);
@@ -1056,15 +1200,35 @@ end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 var
-  Done: Boolean;
+  done, exportandexit: Boolean;
+  i: Integer;
 begin
   if Timer1.Enabled then Exit;
-  Done := false;
-  if ParamCount >= 1 then begin
-    LoadGame(ParamStr(1));
-    NewGuyForm.Server.OnSuccess := nil;
-    NewGuyForm.Server.OnFailure := nil;
-  end else
+  done := false;
+  exportandexit := false;
+  for i := 1 to ParamCount do begin
+    if ParamStr(i) = '-log'
+    then FLogEvents := true
+    else if ParamStr(i) = '-backup'
+    then FMakeBackups := true
+    else if ParamStr(i) = '-no-report-save'
+    then FReportSave := false
+    else if ParamStr(i) = '-no-tray'
+    then FMinToTray := false
+    else if ParamStr(i) = '-export'
+    then FExportSheets := true
+    else if ParamStr(i) = '-export-only'
+    then exportandexit := true
+    else begin
+      LoadGame(ParamStr(i));
+      if exportandexit then begin
+        ExportCharSheet;
+        Timer1.Enabled := false;
+        Close;
+      end;
+      Exit;
+    end;
+  end;
   while not Done do begin
     SetHostName('');
     SetHostAddr('');
@@ -1072,14 +1236,12 @@ begin
     SetPassword('');
     case FrontForm.ShowModal of
     mrOk: begin
-        Done := RollCharacter;
+        done := RollCharacter;
       end;
     mrRetry: begin
       // load
         if FrontForm.OpenDialog1.Execute then begin
           LoadGame(FrontForm.OpenDialog1.Filename);
-          NewGuyForm.Server.OnSuccess := nil;
-          NewGuyForm.Server.OnFailure := nil;
           Done := true;
         end;
       end;
@@ -1134,10 +1296,13 @@ var
   m: TMemoryStream;
   i: Integer;
 begin
+  Log('Saving game: ' + GameSaveName);
   Result := true;
   try
-    DeleteFile(GameSaveName + '.bak');
-    MoveFile(PChar(GameSaveName), PChar(GameSaveName + '.bak'));
+    if FMakeBackups then begin
+      DeleteFile(ChangeFileExt(GameSaveName, '.bak'));
+      MoveFile(PChar(GameSaveName), PChar(ChangeFileExt(GameSaveName, '.bak')));
+    end;
     f := TFileStream.Create(GameSaveName, fmCreate);
   except
     on EfCreateError do begin
@@ -1164,6 +1329,7 @@ var
   m: TStream;
   i: Integer;
 begin
+  FSaveFileName := name;
   m := TMemoryStream.Create;
   f := TFileStream.Create(name, fmOpenRead);
   try
@@ -1187,6 +1353,7 @@ begin
   for i := 0 to ComponentCount-1 do
     m.ReadComponent(Components[i]);
   m.Free;
+  Log('Loaded game: ' + name);
   StartTimer;
   TriggerAutosizes;
 end;
@@ -1208,15 +1375,23 @@ begin
     Timer1.Enabled := false;
     Shell_NotifyIcon(NIM_DELETE, @FTrayIcon);
     if SaveGame then
-      ShowMessage('Game saved as ' + GameSaveName);
+      if FReportSave then
+        ShowMessage('Game saved as ' + GameSaveName);
   end;
+  FReportSave := true;
+  Action := caFree;
 end;
 
 function TMainForm.GameSaveName: String;
 begin
-  Result := Get(Traits,'Name');
-  if GetHostName <> '' then Result := Result + ' [' + GetHostName + ']';
-  Result := Result + '.pq';
+  if FSaveFileName = '' then begin
+    FSaveFileName := Get(Traits,'Name');
+    if GetHostName <> '' then
+      FSaveFileName := FSaveFileName + ' [' + GetHostName + ']';
+    FSaveFileName := FSaveFileName + kFileExt;
+    FSaveFileName := ExpandFileName(PChar(FSaveFileName));
+  end;
+  Result := FSaveFileName;
 end;
 
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
@@ -1266,11 +1441,13 @@ end;
 
 procedure TMainForm.Brag(trigger: String);
 var
-  url: string;
+  url, body: string;
   best, i: Integer;
 const
   flat = 1;
 begin
+  if FExportSheets then
+    ExportCharSheet;
   if GetPasskey = 0 then Exit; // not a online game!
   url := 'cmd=b&t=' + trigger;
   with Traits do for i := 0 to Items.Count-1 do
@@ -1293,26 +1470,31 @@ begin
   url := url + '&a=' + UrlEncode(Plots.Items[Plots.Items.Count-1].Caption);
   url := url + '&h=' + UrlEncode(GetHostName);
   url := url + RevString;
-  //url := url + '&passkey=' + IntToStr((not GetI(Traits,'Level') * 9831) xor GetPasskey);
   url := url + '&p=' + IntToStr(LFSR(url, GetPasskey));
   url := url + '&m=' + UrlEncode(GetMotto);
-  with NewGuyForm.Server do try
-    Abort;
-    HeaderInfo.UserId := GetLogin;
-    HeaderInfo.Password := GetPassword;
-    OnSuccess := NewGuyForm.BragSuccess;
-    Get(GetHostAddr + url);
+  url := AuthenticateUrl(GetHostAddr + url);
+  try
+    body := DownloadString(url);
+    if (LowerCase(Split(body,0)) = 'report') then
+      ShowMessage(Split(body,1));
   except
-    on ESockError do begin
+    on EWebError do begin
       // 'ats okay.
-      Abort;
     end;
   end;
 end;
 
+function TMainForm.AuthenticateUrl(url: String): String;
+begin
+  if (GetLogin <> '') or (GetPassword <> '') then
+    Result := StuffString(url, 8, 0, GetLogin+':'+GetPassword+'@')
+  else
+    Result := url;
+end;
+
 procedure TMainForm.Guildify;
 var
-  url: string;
+  url, s,b: string;
   i: Integer;
 begin
   if GetPasskey = 0 then Exit; // not a online game!
@@ -1323,17 +1505,38 @@ begin
   url := url + RevString;
   url := url + '&guild=' + UrlEncode(GetGuild);
   url := url + '&p=' + IntToStr(LFSR(url, GetPasskey));
-  with NewGuyForm.GuildGet do try
-    Abort;
-    HeaderInfo.UserId := GetLogin;
-    HeaderInfo.Password := GetPassword;
-    Get(GetHostAddr + url);
+  url := AuthenticateUrl(GetHostAddr + url);
+  try
+    b := DownloadString(url);
+    s := Take(b);
+    if s <> '' then ShowMessage(s);
+    s := Take(b);
+    if s <> '' then Navigate(s);
   except
-    on ESockError do begin
+    on EWebError do begin
       // 'ats okay.
       Abort;
     end;
   end;
+end;
+
+procedure TMainForm.OnQueryEndSession(var Msg: TMessage);
+var Action: TCloseAction;
+begin
+  FReportSave := false;
+  FormClose(Self, Action);
+  ReplyMessage(-1);
+end;
+
+procedure TMainForm.OnEndSession(var Msg: TMessage);
+var Action: TCloseAction;
+begin
+  Msg.Result := 0;
+  if Msg.wParam <> 0 then begin
+    FReportSave := false;
+    FormClose(Self, Action);
+  end;
+  ReplyMessage(0);
 end;
 
 initialization

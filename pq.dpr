@@ -6,7 +6,8 @@ uses
   Front in 'Front.pas' {FrontForm},
   Main in 'Main.pas' {MainForm},
   NewGuy in 'NewGuy.pas' {NewGuyForm},
-  SelServ in 'SelServ.pas' {ServerSelectForm};
+  SelServ in 'SelServ.pas' {ServerSelectForm},
+  Web in 'Web.pas';
 
 {$E exe}
 

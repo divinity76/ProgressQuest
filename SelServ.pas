@@ -4,8 +4,8 @@ unit SelServ;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, ExtCtrls, Psock, NMHttp;
+  Windows, Messages, SysUtils, Forms, Dialogs, StdCtrls, ExtCtrls,
+  ComCtrls, Controls, Classes;
 
 type
   TServerSelectForm = class(TForm)
@@ -16,13 +16,11 @@ type
     Desc: TRichEdit;
     Select: TButton;
     Button2: TButton;
-    ServerLoader: TNMHTTP;
     Descs: TListBox;
     Timer1: TTimer;
     Hosts: TListBox;
     Options: TListBox;
     AccessCode: TLabeledEdit;
-    procedure ServerLoaderSuccess(Cmd: CmdType);
     procedure ServersClick(Sender: TObject);
     procedure SelectClick(Sender: TObject);
     procedure AccessCodeChange(Sender: TObject);
@@ -31,6 +29,7 @@ type
   private
     procedure Fetch(path: String);
     function CurrentOpts: Integer;
+    procedure ParseServerList(body: String);
   public
     function Go: Boolean;
   end;
@@ -42,7 +41,7 @@ function Take(var s: String): String;
 
 implementation
 
-uses NewGuy, Login, Main;
+uses NewGuy, Login, Main, Web;
 
 {$R *.dfm}
 
@@ -57,12 +56,12 @@ begin
   end;
 end;
 
-procedure TServerSelectForm.ServerLoaderSuccess(Cmd: CmdType);
+procedure TServerSelectForm.ParseServerList(body: String);
 var
   s, def: String;
   ndef: Integer;
 begin
-  s := ServerLoader.Body;
+  s := body;
   if (LowerCase(Take(s)) = 'ok') then begin
     def := Take(s);
     ndef := 0;
@@ -78,7 +77,7 @@ begin
     ServersClick(Self);
     // Select.Enabled := true;
   end else begin
-    ShowMessage(ServerLoader.Body);
+    ShowMessage(body);
     ModalResult := mrCancel;
   end;
 end;
@@ -96,6 +95,8 @@ begin
 end;
 
 procedure TServerSelectForm.Fetch(path: String);
+var
+  url, reply: String;
 begin
   Select.Enabled := false;
   Servers.Items.Clear;
@@ -106,17 +107,17 @@ begin
   if path <> '' then
     Caption := Caption + ' [' + path + ']';
   Desc.Text := 'Fetching realm list from server...';
+  url := 'http://www.progressquest.com/list.php?' + RevString + '&p=' + path;
+  if AccessCode.Visible then
+    url := url + '&ac=' + UrlEncode(AccessCode.Text);
   try
     Screen.Cursor := crHourglass;
     try
-      if AccessCode.Visible
-      then ServerLoader.HeaderInfo.Password := AccessCode.Text
-      else ServerLoader.HeaderInfo.Password := '';
-      ServerLoader.Get('http://www.progressquest.com/list.php?' + RevString + '&p=' + path +'&ac=' + UrlEncode(ServerLoader.HeaderInfo.Password));
+      reply := DownloadString(url);
+      ParseServerList(reply);
     except
-      on ESockError do begin
-        ShowMessage('Error connecting to server');
-        ServerLoader.Abort;
+      on EWebError do begin
+        ShowMessage('Error connecting to Progress Quest server');
         ModalResult := mrCancel;
       end;
     end;
