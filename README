@@ -1,0 +1,9 @@
+ProgressQuest v6.1
+------------------
+This is an ex post facto rendering of pq6 in its various versions in
+svn, so that changes will be trackable thataway.
+
+The version as of this moment in svn is 6.1
+
+I didn't add this file in PQ 6.0, but after that you can use this README
+to trace the checkin history using svn.
