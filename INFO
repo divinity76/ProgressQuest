@@ -1,0 +1,13 @@
+NAME: pq6
+
+DESCRIPTION: Progress Quest: The phenomenon
+
+CATEGORY: games
+
+STATUS: mature
+
+LANGUAGE: Delphi
+
+TAGS: Object Pascal PQ
+
+MAIN: Main.pas
