@@ -1,11 +1,27 @@
 ==================================================
 Changes observed, forensically, from v6.2 to v6.3:
 ==================================================
+	
+New items, monsters and so forth:
 
-Config.*:
-- Several new items, monsters and so forth.
-- TODO: Impressive titles and Titles either moved or are brand new ?
-
+Spells:
+	Shoelaces
+	History Lesson
+Weapon:
+	Kreen
+Specials:
+	Vulpeculum
+Boring items:
+	writ
+Monster:
+	Chromatic Dragon drops scales rather than mineral water
+	Hogbird
+Races:
+        Hob-Hobbit replaces Greater Gnome (candidates: Gobhobbit, Hobrabbit)
+Classes:
+	Vermineer replaces Toungeblade
+	Jungle Clown replaces Lowling
+	
 Config.*:
 NewGuy.*:
 - Races & Classes moved into Config form from code in NewGuy
@@ -15,19 +31,16 @@ Front.*
 - File extension bumped
 
 Main.dfm
-- Moves and resizes only
+- Moves and resizes
 
 Main.pas
 - Cheats enabled for now
 - HTTP rev number bumped
 - Save ext changed
-- Interplot cinematics between acts
-- NamedMonster
-- ImpressiveGuy
+- Interplot cinematics between acts (NamedMonster & ImpressiveGuy)
 - Execute named RPCs now and then ("Sir Roger the Elf")
 - New leveling schedule(!)
-- WinItem (?)
-- WinEquip (?)
+- WinItem & WinEquip at end of each act
 
 Info.*:
 Login.*:

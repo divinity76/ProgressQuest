@@ -1,6 +1,19 @@
+-*- restructuredtext -*-
 ==================
 ProgressQuest v6.3
 ==================
+
+BUILDING
+--------
+
+Requires Delphi 6.
+
+Requires the package in DelphiZLib.zip to be installed in Delphi, or
+decompress the .obj files from there into this, the project, directory.
+
+
+VCS NOTES
+---------
 
 Converted to Mercurial on 1/12/2010 & sent to
 http://bitbucket.org/grumdrig/pq/ ; development will continue from
@@ -10,8 +23,8 @@ This project represents an ex post facto rendering of pq6 in its
 various versions in version control, so that changes will be trackable
 thataway.
 
-(I didn't add this file in PQ 6.0, but after that you can use this README
-to trace the checkin history using version control.)
+(I didn't add this README file in PQ 6.0, but after that you can use
+this README to trace the checkin history using version control.)
 
 Subversion revsion numbers vs. versions:
 r321 v6.3 as I found it after a couple years of inactivity
