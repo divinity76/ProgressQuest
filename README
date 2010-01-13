@@ -1,3 +1,4 @@
+==================
 ProgressQuest v6.3
 ==================
 
@@ -5,16 +6,14 @@ Converted to Mercurial on 1/12/2010 & sent to
 http://bitbucket.org/grumdrig/pq/ ; development will continue from
 there. If at all. Repository is private ATM. Goal is to open the source.
 
-This directory represents an ex post facto rendering of pq6 in its
+This project represents an ex post facto rendering of pq6 in its
 various versions in version control, so that changes will be trackable
 thataway.
-
-The version as of this moment in version control is 6.3
 
 (I didn't add this file in PQ 6.0, but after that you can use this README
 to trace the checkin history using version control.)
 
-Revsion numbers vs. versions:
+Subversion revsion numbers vs. versions:
 r321 v6.3 as I found it after a couple years of inactivity
 r320 v6.2 probably as released, though I'm not totally sure
 r318 v6.2 but probably a slightly older version
