@@ -1,6 +1,6 @@
 object K: TK
-  Left = 457
-  Top = 331
+  Left = 350
+  Top = 121
   Width = 800
   Height = 567
   Caption = 'K'
@@ -888,7 +888,7 @@ object K: TK
       'Tickle-Mimic|WIS,INT'
       'Slow Poisoner|CON'
       'Bastard Lunatic|CON'
-      'Lowling|WIS'
+      'Jungle Clown|DEX,CHA'
       'Birdrider|WIS'
       'Vermineer|INT')
     TabOrder = 15

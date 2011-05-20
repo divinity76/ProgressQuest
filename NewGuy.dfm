@@ -1,6 +1,6 @@
 object NewGuyForm: TNewGuyForm
-  Left = 693
-  Top = 336
+  Left = 474
+  Top = 177
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Progress Quest - New Character'
@@ -142,7 +142,7 @@ object NewGuyForm: TNewGuyForm
       'Tickle-Mimic'
       'Slow Poisoner'
       'Bastard Lunatic'
-      'Lowling'
+      'Jungle Clown'
       'Birdrider'
       'Vermineer')
     TabOrder = 1
