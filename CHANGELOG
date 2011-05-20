@@ -1,0 +1,37 @@
+==================================================
+Changes observed, forensically, from v6.2 to v6.3:
+==================================================
+
+Config.*:
+- Several new items, monsters and so forth.
+- TODO: Impressive titles and Titles either moved or are brand new ?
+
+Config.*:
+NewGuy.*:
+- Races & Classes moved into Config form from code in NewGuy
+
+Front.*
+- Version bumped
+- File extension bumped
+
+Main.dfm
+- Moves and resizes only
+
+Main.pas
+- Cheats enabled for now
+- HTTP rev number bumped
+- Save ext changed
+- Interplot cinematics between acts
+- NamedMonster
+- ImpressiveGuy
+- Execute named RPCs now and then ("Sir Roger the Elf")
+- New leveling schedule(!)
+- WinItem (?)
+- WinEquip (?)
+
+Info.*:
+Login.*:
+SelServ.*:
+Web.*:
+- none
+

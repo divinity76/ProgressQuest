@@ -1,0 +1,22 @@
+New RPG rulebook: N.U.S.S.B.A.H. II  (Nerfed yoU Soon Shall Be, And How (2ed)) 
+  - 
+New race: Gobhobbit (replaces Greater Gnome)
+New class: Vermineer (replaces Toungeblade)
+New weapon: Kreen (on par w/ a Broadsword)
+New spells: History Lesson, Shoelaces
+New ordinary quest item: writ
+New fancy item: Vulpeculum
+New monster: the Hogbird (Lvl 3, drops a hogbird curl)
+
+Save extensions: pq3
+Named & titled NPC victims sometimes
+
+
+TODO
+Cinematics between plots
+Cinematics to end / begin quests
+Logging
+Class- and race-based effects?
+More accurate item dropping?
+Skills?
+Options screen?

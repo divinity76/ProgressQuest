@@ -1,0 +1,39 @@
+Chillmitts [Oobag]
+Gyrognome Puma Burgular
+Level 1  (exp. 220/1200)
+
+Plot stage: Act I (5 hours remaining)
+Quest:      Deliver this counterpane (83% complete)
+
+Stats:
+  STR     10
+  CON      9
+  DEX      6
+  INT      7
+  WIS      5      HP Max      2
+  CHA     15      MP Max      8
+
+Equipment:
+  Weapon      Sharp Stick
+  Shield      Pie Plate
+  Helm
+  Hauberk
+  Brassairts  -1 Holey Threadbare Chamois
+  Vambraces
+  Gauntlets
+  Cuisses
+  Greaves
+  Sollerets
+
+Spell Book:
+  Hastiness I
+  Big Sister III
+
+Inventory (20/20 cubits):
+  34 Gold
+  2 orc snouts
+  a merman trident
+  a Gleaming Bandolier of Grob
+
+-- June 12 2002 10:12:12
+-- Progress Quest 6.2 - http://progressquest.com
