@@ -199,15 +199,21 @@ var
   kOpenCommand: String;
 begin
   kOpenCommand := '"' + Application.ExeName + '" "%1"';
-  RegWrite(HKEY_CLASSES_ROOT, kFileExt,'', kPQFileType);
-  RegWrite(HKEY_CLASSES_ROOT, kPQFileType, '', 'Progresss Quest saved game');
-  RegWrite(HKEY_CLASSES_ROOT, kPQFileType + '\DefaultIcon', '', Application.ExeName + ',0');
-  RegWrite(HKEY_CLASSES_ROOT, kPQFileType + '\Shell\Open', '', '&Open');
-  if RegRead(HKEY_CLASSES_ROOT, kPQFileType + '\Shell\Open\Command', '') <> kOpenCommand then begin
-    RegWrite(HKEY_CLASSES_ROOT, kPQFileType + '\Shell\Open\Command', '', kOpenCommand);
-    // Notify Windows Explorer to realize we added this. In case this is slow
-    // I don't do this unless I'm sure this one has changed.
-    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nil, nil);
+  try
+    RegWrite(HKEY_CLASSES_ROOT, kFileExt,'', kPQFileType);
+    RegWrite(HKEY_CLASSES_ROOT, kPQFileType, '', 'Progresss Quest saved game');
+    RegWrite(HKEY_CLASSES_ROOT, kPQFileType + '\DefaultIcon', '', Application.ExeName + ',0');
+    RegWrite(HKEY_CLASSES_ROOT, kPQFileType + '\Shell\Open', '', '&Open');
+    if RegRead(HKEY_CLASSES_ROOT, kPQFileType + '\Shell\Open\Command', '') <> kOpenCommand then begin
+      RegWrite(HKEY_CLASSES_ROOT, kPQFileType + '\Shell\Open\Command', '', kOpenCommand);
+      // Notify Windows Explorer to realize we added this. In case this is slow
+      // I don't do this unless I'm sure this one has changed.
+      SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nil, nil);
+    end;
+  except
+    on Exception do begin
+      // Don't care
+    end;
   end;
 end;
 
